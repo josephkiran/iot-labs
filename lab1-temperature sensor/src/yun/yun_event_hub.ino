@@ -8,15 +8,53 @@
 #include <Process.h>
 
 // Your Service Bus endpoint
-String server = "tomhub-ns.servicebus.windows.net";
+String server = "joseph.servicebus.windows.net";
 // The name of your Event Hub
-String hub_name = "tessel";
+String hub_name = "testeventhub";
 // The publisher name, usually a device identifier
 String device_name = "device001";
 // The SAS token that matches the parameters above
-String sas_key = "SharedAccessSignature sr=https%3A%2F%2Ftomhub-ns.servicebus.windows.net%2Ftessel%2Fpublishers%2Fdevice001%2Fmessages&sig=lnO3xxxxhm1xxxxxZGW%2Fl7xxxxinKm66Y%2BYFI60XhnU%3D&se=1423163836&skn=send";
+//String sas_key = "SharedAccessSignature sr=https%3A%2F%2Ftomhub-ns.servicebus.windows.net%2Ftessel%2Fpublishers%2Fdevice001%2Fmessages&sig=lnO3xxxxhm1xxxxxZGW%2Fl7xxxxinKm66Y%2BYFI60XhnU%3D&se=1423163836&skn=send";
+String sas_key = "SharedAccessSignature sr=https%3a%2f%2fjoseph.servicebus.windows.net%2ftesteventhub&sig=goEV5SV4ZnGVXZHjfzPlCVm96HjsZ0i7YQwt2hLZkGs%3d&se=1435536000&skn=allPolicy";
 
 Process proc;
+
+
+
+/*
+** Arduino Setup
+*/
+
+void setup()
+{
+  Bridge.begin();
+  Serial.begin(9600); 
+  
+  while (!Serial){
+  ; // wait for Serial port to open.
+  }
+  
+  Serial.println("ready.\n");
+}
+
+/*
+** Arduino Loop
+*/
+int waitToPush = 0;
+void loop()
+{
+  //int val = analogRead(A0);
+  int val = 42;
+ if(waitToPush == 0){
+   waitToPush = 1;
+ send_request(val);
+ 
+ }
+ 
+  delay(1000);
+}
+
+
 
 /*
 ** Send an HTTP POST request to the Azure Event Hubs
@@ -54,44 +92,24 @@ void send_request(int value)
 
   // POST URI
   proc.addParameter("https://" + server + "/" + hub_name + "/publishers/" + device_name + "/messages");
+  
+  //proc.addParameter("http://www.google.com");
 
   // Run the command synchronously
   proc.run();  
 
   // Read the response and print to Serial
-  while (proc.available() > 0) {
+  int dataAvailable = proc.available();
+  
+  while (dataAvailable > 0) {
     char c = proc.read();
     Serial.print(c);
+    dataAvailable = proc.available();
   }
-  Serial.println();
-}
 
-/*
-** Arduino Setup
-*/
-
-void setup()
-{
-  Bridge.begin();
-  Serial.begin(9600); 
   
-  while (!Serial){
-  ; // wait for Serial port to open.
-  }
+   Serial.print("....DONE SUCESS");
+   Serial.println();
+   waitToPush = 0;
   
-  Serial.println("ready.\n");
-}
-
-/*
-** Arduino Loop
-*/
-
-void loop()
-{
-  //int val = analogRead(A0);
-  int val = 42;
-  
-  send_request(val);
- 
-  delay(1000);
 }
